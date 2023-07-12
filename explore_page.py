@@ -12,52 +12,52 @@ def shorten_categories(categories, cutoff):
     return categorical_map
 
 
-def clean_experience(x):
-    if x ==  'More than 50 years':
+def experience(x):
+    if x == 'More than 50 years':
         return 50
     if x == 'Less than 1 year':
         return 0.5
     return float(x)
 
 
-def clean_education(x):
+def education(x):
+
     if 'Bachelor’s degree' in x:
-        return 'Bachelor’s degree'
-    if 'Master’s degree' in x:
-        return 'Master’s degree'
-    if 'Professional degree' in x or 'Other doctoral' in x:
+        return "Bachelor's degree"
+    elif 'Master’s degree' in x:
+        return "Master's degree"
+    elif 'Professional degree' in x or 'Other doctoral' in x:
         return 'Post grad'
-    return 'Less than a Bachelors'
+    else:
+        return 'Less than a Bachelors'
 
 
-@st.cache
+@st.cache_resource
 def load_data():
     df = pd.read_csv("survey.csv")
-    df = df[["Country", "EdLevel", "YearsCodePro", "Employment", "ConvertedCompYearly"]]
     df = df[df["ConvertedCompYearly"].notnull()]
-    df = df.dropna()
-    df = df[df["Employment"] == "Employed full-time"]
+    df =df.dropna()
     df = df.drop("Employment", axis=1)
 
-    country_map = shorten_categories(df.Country.value_counts(), 400)
+    country_map = shorten_categories(df.Country.value_counts(), 800)
     df["Country"] = df["Country"].map(country_map)
+
     df = df[df["ConvertedCompYearly"] <= 250000]
     df = df[df["ConvertedCompYearly"] >= 10000]
     df = df[df["Country"] != "Other"]
 
-    df["YearsCodePro"] = df["YearsCodePro"].apply(clean_experience)
-    df["EdLevel"] = df["EdLevel"].apply(clean_education)
-    df = df.rename({"ConvertedCompYearly": "Salary"}, axis=1)
+    df["YearsCodePro"] = df["YearsCodePro"].apply(experience)
+    df["EdLevel"] = df["EdLevel"].apply(education)
+
     return df
 
 df = load_data()
-
 def show_explore_page():
-    st.title("Explore Software Engineer Salaries")
+
 
     st.write(
         """
-    ### Stack Overflow Developer Survey 2020
+    ### Stack Overflow Developer Survey 2022
     """
     )
 
@@ -65,19 +65,17 @@ def show_explore_page():
 
     fig1, ax1 = plt.subplots()
     ax1.pie(data, labels=data.index, autopct="%1.1f%%", shadow=True, startangle=90)
-    ax1.axis("equal")  # Equal aspect ratio ensures that pie is drawn as a circle.
-
-    st.write("""#### Number of Data from different countries""")
-
+    ax1.axis("equal") 
+    st.write("""#### Number of Data from countries""")
     st.pyplot(fig1)
     
     st.write(
         """
-    #### Mean Salary Based On Country
+    #### Mean Salary In Other Country
     """
     )
 
-    data = df.groupby(["Country"])["Salary"].mean().sort_values(ascending=True)
+    data = df.groupby(["Country"])["ConvertedCompYearly"].mean().sort_values(ascending=True)
     st.bar_chart(data)
 
     st.write(
@@ -86,5 +84,9 @@ def show_explore_page():
     """
     )
 
-    data = df.groupby(["YearsCodePro"])["Salary"].mean().sort_values(ascending=True)
+    data = df.groupby(["YearsCodePro"])["ConvertedCompYearly"].mean().sort_values(ascending=True)
     st.line_chart(data)
+
+
+if __name__ == "__main__":
+    show_explore_page()
