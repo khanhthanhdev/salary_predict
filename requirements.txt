@@ -2,4 +2,4 @@ streamlit
 pandas
 numpy
 matplotlib
-pickle=4.0
+pickle==4.0
