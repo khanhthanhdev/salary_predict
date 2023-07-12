@@ -1,5 +1,4 @@
 pandas==2.0.2
 streamlit==1.23.1
 matplotlib==3.7.1
-pickle==4.0
 numpy==1.23.4
